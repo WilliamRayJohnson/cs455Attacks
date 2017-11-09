@@ -1,0 +1,107 @@
+Environment set up
+start two VMs: one as the server and one as the attacker
+They should use NAT-Network as the Internet adapter
+
+
+Set up for convinience
+========================================
+Modify the terminal head bar to differentiate the VMs
+1) In terminal: edit-> profile preferences-> title and Command
+   -------------------------------------------------
+   Initial title: Heartbleed Server (or Heartbleed Attacker)
+
+2) Use the attack.py in the Attacker VM.
+   -------------------------------------------------
+   
+
+On the Server: print the IP and remember for further use
+========================================
+
+	ifconfig
+
+
+
+On the Attacker Machine: set up the DNS for the target domain
+=====================================================
+1) Use the privilege mod (sudo) to open: /etc/hosts
+
+
+
+2) For whatever editor you use, locate the line:
+   -------------------------------------------------
+   127.0.0.1       www.heartbleedlabelgg.com
+
+
+3) Modify 127.0.0.1 to the server's IP address, e.g.
+   -------------------------------------------------
+   10.0.2.29       www.heartbleedlabelgg.com
+
+
+4) Save and exit
+
+
+5) Use ping command to see whether the command works
+   -------------------------------------------------
+        ping www.heartbleedlabelgg.com
+   -------------------------------------------------
+   www.heartbleedlabelgg.com's IP should be showed as 10.0.2.29, which is set in /etc/hosts
+
+
+
+Task A: On the Attacker Machine
+==========================================
+
+1) Use cd to the location of attack.py and make it executable
+   ---------------------------------------
+	chmod 755 attack.py
+
+
+2) Run the program with different length (actual payload size = 22)
+   ---------------------------------------
+	./attack.py www.heartbleedlabelgg.com 
+        # this equals to ./attack.py www.heartbleedlabelgg.com -l 0x4000
+
+	./attack.py www.heartbleedlabelgg.com -l 0x2020
+
+	./attack.py www.heartbleedlabelgg.com -l 33
+	
+	./attack.py www.heartbleedlabelgg.com -l 3300
+	
+	./attack.py www.heartbleedlabelgg.com -l 3200
+
+
+3) Analysis the result: the termnial messages are all from our attack.py
+   -----------------------------------------
+	Whether is it vulnerable or not?
+	What is the boundary of the length value? (between the benign and malicious request)
+	Do you find anything useful for an attacker?
+
+
+    
+Task B: It is getting real:password
+==========================================
+1) On the server: open firefox browser for the site
+   -------------------------------------------------
+   www.heartbleedlabattacker.com
+
+   See the warning? Unfortunately, the certificate of the site gets expired on May,23 2016
+
+2) On the server: Login as the admininstrator
+   -------------------------------------------------
+   username:admin
+   password:seedelgg
+
+3) On the attacker machine: Run the attack.py to see what you can find.
+
+
+
+
+Task C: It is getting real:private message
+==========================================
+1) On the server: send a message to someone
+   -------------------------------------------------
+   Go to member->samy
+   Click send message and compose one to send
+
+2) On the attacker machine: Run the attack.py to see if you can find the message content.
+
